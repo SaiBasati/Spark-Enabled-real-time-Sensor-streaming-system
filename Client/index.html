@@ -1,0 +1,238 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <title>Temperature Gauge</title>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <link rel="stylesheet" href="http://maxcdn.bootstrapcdn.com/bootstrap/3.3.6/css/bootstrap.min.css">
+  <script src="https://ajax.googleapis.com/ajax/libs/jquery/1.12.0/jquery.min.js"></script>
+  <script src="http://maxcdn.bootstrapcdn.com/bootstrap/3.3.6/js/bootstrap.min.js"></script>
+  <script type="text/javascript" src="https://www.gstatic.com/charts/loader.js"></script>
+  <style>
+    /* Remove the navbar's default rounded borders and increase the bottom margin */ 
+    .navbar {
+      margin-bottom: 50px;
+      border-radius: 0;
+    }
+    
+    /* Remove the jumbotron's default bottom margin */ 
+     .jumbotron {
+      margin-bottom: 0;
+    }
+    /* Add a gray background color and some padding to the footer */
+    footer {
+    background-color: #f2f2f2;
+      padding: 25px;
+    }
+
+.onoffswitch {
+    position: relative; width: 90px;
+    -webkit-user-select:none; -moz-user-select:none; -ms-user-select: none;
+}
+.onoffswitch-checkbox {
+    display: none;
+}
+.onoffswitch-label {
+    display: block; overflow: hidden; cursor: pointer;
+    border: 2px solid #999999; border-radius: 20px;
+}
+.onoffswitch-inner {
+    display: block; width: 200%; margin-left: -100%;
+    transition: margin 0.3s ease-in 0s;
+}
+.onoffswitch-inner:before, .onoffswitch-inner:after {
+    display: block; float: left; width: 50%; height: 30px; padding: 0; line-height: 30px;
+    font-size: 14px; color: white; font-family: Trebuchet, Arial, sans-serif; font-weight: bold;
+    box-sizing: border-box;
+}
+.onoffswitch-inner:before {
+    content: "ON";
+    padding-left: 10px;
+    background-color: #34A7C1; color: #FFFFFF;
+}
+.onoffswitch-inner:after {
+    content: "OFF";
+    padding-right: 10px;
+    background-color: #EEEEEE; color: #999999;
+    text-align: right;
+}
+.onoffswitch-switch {
+    display: block; width: 18px; margin: 6px;
+    background: #FFFFFF;
+    position: absolute; top: 0; bottom: 0;
+    right: 56px;
+    border: 2px solid #999999; border-radius: 20px;
+    transition: all 0.3s ease-in 0s; 
+}
+.onoffswitch-checkbox:checked + .onoffswitch-label .onoffswitch-inner {
+    margin-left: 0;
+}
+.onoffswitch-checkbox:checked + .onoffswitch-label .onoffswitch-switch {
+    right: 0px; 
+}
+  </style>
+         <script type='text/javascript' src='https://www.amcharts.com/lib/3/amcharts.js'></script>
+        <script src="https://ajax.googleapis.com/ajax/libs/jquery/1.12.0/jquery.min.js"></script>
+        <script type='text/javascript' src='https://www.amcharts.com/lib/3/gauge.js'></script>
+
+        <script>
+ 
+      
+            var chart;
+            var arrow;
+            var axis;
+            var userName;
+
+            userName = prompt("What's your sensorID ?", "");
+
+
+            AmCharts.ready(function () {
+                // create angular gauge
+                chart = new AmCharts.AmAngularGauge();
+                chart.addTitle("Temperature Guage");
+
+                // create axis
+                axis = new AmCharts.GaugeAxis();
+                axis.startValue = 0;
+                axis.axisThickness = 1;
+                axis.valueInterval = 10;
+                axis.endValue = 220;
+                // color bands
+                var band1 = new AmCharts.GaugeBand();
+                band1.startValue = 0;
+                band1.endValue = 90;
+                band1.color = "#00CC00";
+
+                var band2 = new AmCharts.GaugeBand();
+                band2.startValue = 90;
+                band2.endValue = 130;
+                band2.color = "#ffac29";
+
+                var band3 = new AmCharts.GaugeBand();
+                band3.startValue = 130;
+                band3.endValue = 220;
+                band3.color = "#ea3838";
+                band3.innerRadius = "95%";
+
+                axis.bands = [band1, band2, band3];
+
+                // bottom text
+                axis.bottomTextYOffset = -20;
+                axis.setBottomText("0 'C");
+                chart.addAxis(axis);
+
+                // gauge arrow
+                arrow = new AmCharts.GaugeArrow();
+                chart.addArrow(arrow);
+
+                chart.write("chartdiv");
+                // change value every 1 seconds
+               
+            });
+
+            // set random value
+            function randomValue() {
+
+                var value = Math.floor(Math.random() * (100 - 0 + 1)) + 1;
+
+                var object = {'userName': userName , 'temperature': value }
+
+                   $.ajax({
+                    url: 'http://localhost:8083/start',
+                    type: 'POST',
+                    data: object,
+                    success: function(locationInfo1) {
+                       
+                        console.log(locationInfo1);
+                      
+                     
+
+                    }
+          }); 
+
+                        arrow.setValue(value);
+                        axis.setBottomText(value + " 'C");  
+
+                
+            }
+            var myVar;
+            function recommendSausage()
+                    {
+                      if(document.orderForm.onoffswitch.checked == true)
+                      {  
+                            myVar = setInterval(function() {
+                            randomValue();
+                        }, 2000);
+                      }
+                     if(document.orderForm.onoffswitch.checked == false)
+                      {
+                              setTimeout(function( ) { clearInterval( myVar );
+                        }, 1000);
+
+                      }
+                    }
+
+                    function add(){
+                      document.getElementById("sensorID").innerHTML = "SensorID: " + userName;
+                    }
+
+        </script>
+</head>
+<body onload="add()">
+
+<nav class="navbar navbar-inverse">
+  <div class="container-fluid">
+    <div class="collapse navbar-collapse" id="myNavbar">
+      <ul class="nav navbar-nav">
+       
+      </ul>
+    </div>
+  </div>
+</nav>
+
+<!-- Page1 -->
+
+<div id="page1">
+<div class="container">    
+  <div class="row">
+    <div class="col-md-6">
+      <div class="panel panel-primary">
+        <div class="panel-heading">Temperature Guage</div>
+        <div class="panel-body">
+         <div id="sensorID"></div><br><br>
+          <div id="chartdiv" style="width:100%; height:400px;"></div>
+        </div>
+        <div class="panel-footer"></div>
+      </div>
+    </div>
+    <div class="col-md-6"> 
+      <div class="panel panel-danger">
+        <div class="panel-heading">Switch</div>
+         <div class="panel-body">
+         
+       <form name="orderForm">
+       <div class="onoffswitch">
+    <input type="checkbox" name="onoffswitch" class="onoffswitch-checkbox" onClick="recommendSausage()" id="myonoffswitch">
+    <label class="onoffswitch-label" for="myonoffswitch">
+        <span class="onoffswitch-inner"></span>
+        <span class="onoffswitch-switch"></span>
+    </label>
+</div>
+      </form>
+        </div>
+        <div class="panel-footer"></div>
+      </div>
+    </div>
+    
+</div>
+</div>
+
+
+
+<footer class="container-fluid text-center">
+
+  <p>Apurva Spark</p>  
+</footer>
+
+</body>
+</html>

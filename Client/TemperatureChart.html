@@ -1,0 +1,156 @@
+<!DOCTYPE HTML PUBLIC "-//W3C//DTD HTML 4.01//EN" "http://www.w3.org/TR/html4/strict.dtd">
+<html>
+
+    <head>
+        <meta http-equiv="Content-Type" content="text/html; charset=utf-8">
+        <title>Temperature Chart</title>
+       
+        <script type='text/javascript' src='https://www.amcharts.com/lib/3/amcharts.js?ver=20160308-01'></script>
+<script type='text/javascript' src='https://www.amcharts.com/lib/3/pie.js?ver=20160308-01'></script>
+<script type='text/javascript' src='https://www.amcharts.com/lib/3/serial.js?ver=20160308-01'></script>
+<script type='text/javascript' src='https://www.amcharts.com/lib/3/amstock.js?ver=20160308-01'></script>
+<script type='text/javascript' src='https://www.amcharts.com/lib/3/funnel.js?ver=20160308-01'></script>
+<script type='text/javascript' src='https://www.amcharts.com/lib/3/gauge.js?ver=20160308-01'></script>
+<script type='text/javascript' src='https://www.amcharts.com/lib/3/radar.js?ver=20160308-01'></script>
+<script type='text/javascript' src='https://www.amcharts.com/lib/3/xy.js?ver=20160308-01'></script>
+<script type='text/javascript' src='https://www.amcharts.com/lib/3/gantt.js?ver=20160308-01'></script>
+        <script type="text/javascript" src="http://code.jquery.com/jquery-1.8.3.min.js"></script>
+        <style type="text/css">
+@import url(http://fonts.googleapis.com/css?family=Lato:300);
+
+body {
+    background-color: #FFFFFF;
+    margin-left: 32px;
+    margin-top: 20px;
+    margin-right: 20px;
+    margin-bottom: 20px;
+    font-family: "Lato", Arial;
+    font-size: 14px;
+    line-height:16px;
+}
+
+hr{
+   border: 1px solid #FFFFFF;
+}
+
+a:link{
+    color:#0055CC;
+}
+a:visited{
+        color:#990099;
+}
+a:hover{
+        color:#CC0000;
+}
+
+th{
+    background-color:#FFFFFF;
+    font-weight:bold;
+}
+
+td{
+    background-color:#ecf7fe;
+    text-align:center;
+}
+        </style>
+        <script>
+        var userName;
+
+        userName = prompt("What's your sensorID ?", "");
+
+setInterval(function () {
+        var chartData = generateChartData();
+
+
+var chart = AmCharts.makeChart("chartdiv", {
+    "type": "serial",
+    "theme": "light",
+    "marginRight": 80,
+    "dataProvider": chartData,
+    "valueAxes": [{
+        "position": "left",
+        "title": "Temperature"
+    }],
+    "graphs": [{
+        "id": "g1",
+        "fillAlphas": 0.4,
+        "valueField": "visits",
+         "balloonText": "<div style='margin:5px; font-size:19px;'>Temperature:<b>[[value]]</b></div>"
+    }],
+    "chartScrollbar": {
+        "graph": "g1",
+        "scrollbarHeight": 80,
+        "backgroundAlpha": 0,
+        "selectedBackgroundAlpha": 0.1,
+        "selectedBackgroundColor": "#888888",
+        "graphFillAlpha": 0,
+        "graphLineAlpha": 0.5,
+        "selectedGraphFillAlpha": 0,
+        "selectedGraphLineAlpha": 1,
+        "autoGridCount": true,
+        "color": "#AAAAAA"
+    },
+    "chartCursor": {
+        "categoryBalloonDateFormat": "JJ:NN, DD MMMM",
+        "cursorPosition": "mouse"
+    },
+    "categoryField": "date",
+    "categoryAxis": {
+        "minPeriod": "ss",
+        "parseDates": true
+    },
+    "export": {
+        "enabled": true,
+         "dateFormat": "YYYY-MM-DD HH:NN:SS"
+    }
+});
+
+chart.addListener("dataUpdated", zoomChart);
+// when we apply theme, the dataUpdated event is fired even before we add listener, so
+// we need to call zoomChart here
+zoomChart();
+// this method is called when chart is first inited as we listen for "dataUpdated" event
+function zoomChart() {
+    // different zoom methods can be used - zoomToIndexes, zoomToDates, zoomToCategoryValues
+    chart.zoomToIndexes(chartData.length - 250, chartData.length - 100);
+}
+  },5000)
+
+// generate some random data, quite different range
+function generateChartData() {
+    var chartData = [];
+   
+    // current date
+    var firstDate = new Date();
+    console.log(firstDate.toUTCString());
+    // now set 500 minutes back
+    firstDate.setMinutes(firstDate.getDate() - 1000);
+    var data = [];
+    
+
+    var xhttp = new XMLHttpRequest();
+    xhttp.open("GET", "http://localhost:8083/gettemp?user="+userName, false);
+    xhttp.send();
+    var json1 = JSON.parse(xhttp.responseText);
+                 for (var i = 0; i < json1.length; i++) {
+                     var json2 = JSON.parse(json1[i]);
+                     data.push(json2); 
+                 };
+    console.log(data);  
+    
+    for (var i = 0; i < data.length; i++) {
+        chartData.push({
+            date: data[i]['time'],
+            visits: data[i]['temperature']
+        });
+    }
+    return chartData;
+}
+        </script>
+    </head>
+
+    <body>
+        <div id="chartdiv" style="width: 100%; height: 400px;"></div>
+    </body>
+
+</html>
